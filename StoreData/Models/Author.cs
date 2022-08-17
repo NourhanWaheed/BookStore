@@ -25,7 +25,7 @@ namespace StoreData.Models
         public string? URL { get; set; }
         [DataType(DataType.MultilineText)]
         public string? About{ get; set; }
-        public List<Book> BookList { get; set; }
+        public virtual List<Book> BookList { get; set; }
 
     }
 }

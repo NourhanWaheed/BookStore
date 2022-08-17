@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 using StoreData.Models;
 using System;
 using System.Collections.Generic;
@@ -14,13 +15,12 @@ namespace StoreData.Data
         public DbSet<Author> Authors { get; set; }
         public DbSet<Book> Books { get; set; }
         public DbSet<Keyword> Keywords { get; set; }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public StoreContext(DbContextOptions<StoreContext> options)
+             : base(options)
         {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=;Integrated Security=True");
-            }
+
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Keyword>(entity =>
@@ -28,6 +28,16 @@ namespace StoreData.Data
                 entity.HasKey(e => new { e.BookId, e.Name });
 
             });
+        }
+    }
+    public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<StoreContext>
+    {
+        public StoreContext CreateDbContext(string[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<StoreContext>();
+            optionsBuilder.UseSqlServer("Server=.;Database=BookStore;Trusted_Connection=True;MultipleActiveResultSets=true");
+
+            return new StoreContext(optionsBuilder.Options);
         }
     }
 }
