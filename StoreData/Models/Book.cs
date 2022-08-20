@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StoreData.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 namespace StoreData.Models
 {
     [Table("Book")]
-    public class Book
+    public class Book:IBase
     {
         public Book()
         {

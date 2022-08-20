@@ -1,4 +1,11 @@
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using StoreData.Data;
+using StoreData.Extensions;
+using StoreData.Interfaces;
+using StoreData.Models;
+using StoreData.Repositories;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +19,29 @@ IServiceCollection serviceCollection = builder.Services.AddDbContext<StoreData.D
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
     .EnableSensitiveDataLogging()
     .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
+builder.Services.AddSingleton<DapperContext>();
+builder.Services.AddScoped<IAuthor, AuthorRepository>();
 
 var app = builder.Build();
-
+//app.ConfigureExceptionHandler();
+app.UseExceptionHandler(
+    appError =>
+    {
+        appError.Run(async context =>
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.ContentType = "application/json";
+            var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+            if (contextFeature != null)
+            {
+                await context.Response.WriteAsync(new ErrorMessage()
+                {
+                    StatusCode = context.Response.StatusCode,
+                    Message = "Internal Server Error."
+                }.ToString());
+            }
+        });
+    });
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
