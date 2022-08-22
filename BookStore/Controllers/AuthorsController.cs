@@ -24,98 +24,64 @@ namespace BookStore.Controllers
 
         // GET: api/Authors
         [HttpGet]
-        public async Task<ActionResult> GetAuthors()
+        public async Task<IActionResult> GetAuthors()
         {
-            return(ActionResult) await _context.GetAllAsync("SELECT * FROM Author");
+            var Authors = await _context.GetAllAsync("SELECT * FROM Author");
+            if(Authors.Count() == 0)
+                return NotFound();
+            return Ok(Authors) ;
         }
 
-        // GET: api/Authors/5
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<Author>> GetAuthor(int id)
-        //{
-        //  if (_context.Authors == null)
-        //  {
-        //      return NotFound();
-        //  }
-        //    var author = await _context.Authors.FindAsync(id);
-
-        //    if (author == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return author;
-        //}
+        //GET: api/Authors/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Author>> GetAuthor(int id)
+        {
+            if(id == 0)
+                return BadRequest();
+            var Author = await _context.GetByIdAsync("SELECT * FROM Author WHERE ID =@id" , id);
+            if (Author == null)
+            {
+                return NotFound();
+            }
+            return Author;
+        }
 
         //// PUT: api/Authors/5
         //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutAuthor(int id, Author author)
-        //{
-        //    if (id != author.Id)
-        //    {
-        //        return BadRequest();
-        //    }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutAuthor(int id, Author author)
+        {
+            if (id != author.Id)
+            {
+                return BadRequest();
+            }
+            await _context.UpdateAsync(id, author);
 
-        //    _context.Entry(author).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!AuthorExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return NoContent();
-        //}
+            return NoContent();
+        }
 
         //// POST: api/Authors
         //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPost]
-        //public async Task<ActionResult<Author>> PostAuthor(Author author)
-        //{
-        //  if (_context.Authors == null)
-        //  {
-        //      return Problem("Entity set 'StoreContext.Authors'  is null.");
-        //  }
-        //    _context.Authors.Add(author);
-        //    await _context.SaveChangesAsync();
-
-        //    return CreatedAtAction("GetAuthor", new { id = author.Id }, author);
-        //}
+        [HttpPost]
+        public async Task<ActionResult<Author>> PostAuthor(Author author)
+        {
+            try
+            {
+                await _context.AddAsync(author);
+            }
+            catch
+            {
+                return BadRequest();
+            }
+           return CreatedAtAction("GetAuthor", new { id = author.Id }, author);
+        }
 
         //// DELETE: api/Authors/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteAuthor(int id)
-        //{
-        //    if (_context.Authors == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var author = await _context.Authors.FindAsync(id);
-        //    if (author == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.Authors.Remove(author);
-        //    await _context.SaveChangesAsync();
-
-        //    return NoContent();
-        //}
-
-        //private bool AuthorExists(int id)
-        //{
-        //    return (_context.Authors?.Any(e => e.Id == id)).GetValueOrDefault();
-        //}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAuthor(int id)
+        {
+           await _context.DeleteAsync(id);
+            return NoContent();
+        }
     }
 }

@@ -47,7 +47,7 @@ namespace StoreData.Repositories
             {
                 var result = await connection.QueryAsync<T>(query);
                 if (result.Count() == 0)
-                    throw new Exception(new ErrorMessage() { StatusCode = 404, Message = "NotFound" }.ToString());
+                    return Enumerable.Empty<T>();
                 return result;
             }
         }
@@ -55,12 +55,12 @@ namespace StoreData.Repositories
         public async Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includeProperties)
         {
             IQueryable<T> query = _context.Set<T>();
-            query = includeProperties.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
+        query = includeProperties.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
             return await query.ToListAsync();
 
-        }
+    }
 
-        public async Task<T> GetByIdAsync(string query ,int id)
+    public async Task<T> GetByIdAsync(string query ,int id)
         {
             using (var connection = _dappercontext.CreateConnection())
             {
@@ -68,7 +68,7 @@ namespace StoreData.Repositories
             }
             // return await _context.Set<T>().FirstOrDefaultAsync(n => n.Id == id);
         }
-        
+
         public async Task<T> GetByIdAsync(int id, params Expression<Func<T, object>>[] includeProperties)
         {
             IQueryable<T> query = _context.Set<T>();
@@ -81,7 +81,24 @@ namespace StoreData.Repositories
             EntityEntry entityEntry = _context.Entry<T>(entity);
             entityEntry.State = EntityState.Modified;
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }catch(DbUpdateConcurrencyException)
+            {
+                if (!EntityExists(id))
+                {
+                    throw new Exception("Entity Not Found");
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            }
+        }
+        private bool EntityExists(int id)
+        {
+            return (_context.Set<T>()?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

@@ -28,6 +28,12 @@ namespace StoreData.Data
                 entity.HasKey(e => new { e.BookId, e.Name });
 
             });
+            modelBuilder.Entity<Author>()
+               .HasMany(a => a.BookList)
+               .WithOne(b => b.Author)
+               .HasForeignKey(b => b.AuthorId).IsRequired(true);
+
+            modelBuilder.Ignore<ErrorMessage>();
         }
     }
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<StoreContext>
